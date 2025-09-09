@@ -1,0 +1,123 @@
+---
+// src/pages/final-grade-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Final Grade Calculator | CourseAssist">
+  <div class="max-w-3xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Final Grade Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Find out what you need to score on your final exam.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Input Section -->
+        <div class="space-y-4">
+          <div>
+            <label for="current-grade" class="block text-sm font-medium text-gray-700">Your Current Grade (%)</label>
+            <input type="number" id="current-grade" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., 85">
+          </div>
+          <div>
+            <label for="desired-grade" class="block text-sm font-medium text-gray-700">Your Desired Grade (%)</label>
+            <input type="number" id="desired-grade" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., 90">
+          </div>
+          <div>
+            <label for="exam-weight" class="block text-sm font-medium text-gray-700">Final Exam Weight (%)</label>
+            <input type="number" id="exam-weight" class="mt-1 block w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500" placeholder="e.g., 20">
+          </div>
+        </div>
+
+        <!-- Result Section -->
+        <div class="bg-gray-50 rounded-lg flex flex-col items-center justify-center p-6 text-center">
+            <h2 class="text-lg font-bold text-gray-800">You need to score:</h2>
+            <p id="result-grade" class="text-5xl font-extrabold text-blue-600 my-2">--%</p>
+            <p id="result-message" class="text-gray-600">on your final exam.</p>
+        </div>
+
+      </div>
+
+      <!-- Calculate Button -->
+      <div class="mt-8">
+        <button id="calculate-btn" class="w-full bg-blue-600 text-white font-bold py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors duration-200">
+          Calculate Required Grade
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // DOM Elements
+    const currentGradeInput = document.getElementById('current-grade');
+    const desiredGradeInput = document.getElementById('desired-grade');
+    const examWeightInput = document.getElementById('exam-weight');
+    const calculateBtn = document.getElementById('calculate-btn');
+    const resultGradeEl = document.getElementById('result-grade');
+    const resultMessageEl = document.getElementById('result-message');
+
+    function calculateFinalGrade() {
+      // Get values from inputs and convert to numbers
+      const currentGrade = parseFloat(currentGradeInput.value);
+      const desiredGrade = parseFloat(desiredGradeInput.value);
+      const examWeight = parseFloat(examWeightInput.value);
+
+      // Validate that all inputs are valid numbers
+      if (isNaN(currentGrade) || isNaN(desiredGrade) || isNaN(examWeight)) {
+        resultGradeEl.textContent = '--%';
+        resultMessageEl.textContent = 'Please fill in all fields.';
+        return;
+      }
+      
+      // Validate exam weight is between 0 and 100
+      if (examWeight <= 0 || examWeight >= 100) {
+        resultGradeEl.textContent = 'Error';
+        resultMessageEl.textContent = 'Exam weight must be between 0 and 100.';
+        return;
+      }
+
+      // Convert weight to a decimal (e.g., 20% -> 0.20)
+      const weightDecimal = examWeight / 100;
+      
+      // Perform the calculation
+      const requiredGrade = (desiredGrade - (currentGrade * (1 - weightDecimal))) / weightDecimal;
+
+      // Update the display
+      resultGradeEl.textContent = `${requiredGrade.toFixed(2)}%`;
+      
+      // Provide a helpful message based on the result
+      if (requiredGrade > 100) {
+        resultMessageEl.textContent = 'on your final. Extra credit may be needed!';
+      } else if (requiredGrade < 0) {
+        resultMessageEl.textContent = 'on your final. You\'ve already reached your goal!';
+      } else {
+        resultMessageEl.textContent = 'on your final exam.';
+      }
+    }
+
+    // Event Listener
+    calculateBtn.addEventListener('click', calculateFinalGrade);
+
+    // --- Auto-calculation and Enter key logic ---
+    const allInputs = [currentGradeInput, desiredGradeInput, examWeightInput];
+
+    // Function to handle the Enter key press for accessibility and convenience
+    function handleEnterKey(event) {
+      if (event.key === 'Enter') {
+        calculateFinalGrade();
+      }
+    }
+
+    // Attach event listeners to all input fields
+    allInputs.forEach(input => {
+      // Calculate automatically whenever the user types in a field
+      input.addEventListener('input', calculateFinalGrade);
+      
+      // Calculate when the user presses Enter in a field
+      input.addEventListener('keydown', handleEnterKey);
+    });
+  </script>
+</Layout>
+

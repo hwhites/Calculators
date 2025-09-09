@@ -1,0 +1,62 @@
+---
+// src/pages/study-break.astro
+import Layout from '../layouts/Layout.astro';
+import GameCard from '../components/GameCard.astro';
+
+// This is the central list of all your games.
+const games = [
+  { 
+    title: "Tetris", 
+    author: "Open-Source", 
+    href: "/games/tetris",
+    imgSrc: "https://placehold.co/600x400/ef4444/ffffff?text=Tetris"
+  },
+  { 
+    title: "Spider Solitaire", 
+    author: "Open-Source", 
+    href: "/games/spider", 
+    imgSrc: "https://placehold.co/600x400/22c55e/ffffff?text=Spider" 
+  },
+  { 
+    title: "Snake", 
+    author: "Open-Source", 
+    href: "/games/snake",
+    imgSrc: "https://placehold.co/600x400/eab308/ffffff?text=Snake"
+  },
+  { 
+    title: "Puzzle", 
+    author: "Open-Source", 
+    href: "/games/puzzle",
+    imgSrc: "https://placehold.co/600x400/8b5cf6/ffffff?text=Puzzle"
+  },
+  { 
+    title: "Defender", 
+    author: "Open-Source", 
+    href: "/games/defender",
+    imgSrc: "https://placehold.co/600x400/3b82f6/ffffff?text=Defender"
+  },
+];
+---
+
+<Layout title="Study Break | Games">
+  <div class="max-w-6xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Study Break</h1>
+      <p class="mt-2 text-lg text-gray-600">A collection of simple, ad-free games to help you relax and recharge.</p>
+    </div>
+
+    <!-- Games Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {games.map(game => (
+        <GameCard 
+          title={game.title}
+          author={game.author}
+          href={game.href}
+          imgSrc={game.imgSrc}
+        />
+      ))}
+    </div>
+  </div>
+</Layout>
+

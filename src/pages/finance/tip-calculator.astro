@@ -1,0 +1,120 @@
+---
+// src/pages/tip-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Tip Calculator | CourseAssist">
+  <div class="max-w-md mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Tip Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Quickly calculate tips and split the bill.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Bill Amount Input -->
+      <div>
+        <label for="billAmount" class="block text-sm font-medium text-gray-700">Bill Amount ($)</label>
+        <input type="number" id="billAmount" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg text-2xl" placeholder="0.00">
+      </div>
+
+      <!-- Tip Percentage -->
+      <div class="mt-6">
+        <label class="block text-sm font-medium text-gray-700">Select Tip %</label>
+        <div class="mt-2 grid grid-cols-3 gap-2">
+          <button class="tip-btn" data-percent="15">15%</button>
+          <button class="tip-btn active" data-percent="18">18%</button>
+          <button class="tip-btn" data-percent="20">20%</button>
+          <button class="tip-btn" data-percent="25">25%</button>
+          <button class="tip-btn" data-percent="30">30%</button>
+          <input type="number" id="customTip" class="calc-input w-full p-2 border border-gray-300 rounded-lg text-center" placeholder="Custom">
+        </div>
+      </div>
+
+      <!-- Number of People -->
+      <div class="mt-6">
+        <label for="numPeople" class="block text-sm font-medium text-gray-700">Split Between</label>
+        <input type="number" id="numPeople" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" value="1" min="1">
+      </div>
+
+      <!-- Results Display -->
+      <div class="mt-8 bg-blue-600 text-white rounded-lg p-6 space-y-4">
+        <div class="flex justify-between items-center">
+          <p>Tip Amount <span class="text-sm opacity-75">/ person</span></p>
+          <p id="tipPerPerson" class="text-3xl font-bold">$0.00</p>
+        </div>
+        <div class="flex justify-between items-center">
+          <p>Total <span class="text-sm opacity-75">/ person</span></p>
+          <p id="totalPerPerson" class="text-3xl font-bold">$0.00</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const billAmountInput = document.getElementById('billAmount');
+    const tipBtns = document.querySelectorAll('.tip-btn');
+    const customTipInput = document.getElementById('customTip');
+    const numPeopleInput = document.getElementById('numPeople');
+    const tipPerPersonDisplay = document.getElementById('tipPerPerson');
+    const totalPerPersonDisplay = document.getElementById('totalPerPerson');
+    
+    let tipPercent = 18; // Default tip
+
+    // --- Calculation Logic ---
+    function calculate() {
+      const bill = parseFloat(billAmountInput.value) || 0;
+      const people = parseInt(numPeopleInput.value) || 1;
+
+      if (bill < 0 || people < 1) return;
+
+      const totalTip = bill * (tipPercent / 100);
+      const totalBill = bill + totalTip;
+
+      const tipPerPerson = totalTip / people;
+      const totalPerPerson = totalBill / people;
+
+      tipPerPersonDisplay.textContent = `$${tipPerPerson.toFixed(2)}`;
+      totalPerPersonDisplay.textContent = `$${totalPerPerson.toFixed(2)}`;
+    }
+
+    // --- Event Handlers ---
+    function handleTipBtnClick(e) {
+      tipBtns.forEach(btn => btn.classList.remove('active'));
+      e.target.classList.add('active');
+      tipPercent = parseInt(e.target.dataset.percent);
+      customTipInput.value = '';
+      calculate();
+    }
+    
+    function handleCustomTipInput() {
+        tipBtns.forEach(btn => btn.classList.remove('active'));
+        tipPercent = parseFloat(customTipInput.value) || 0;
+        calculate();
+    }
+
+    // --- Event Listeners ---
+    billAmountInput.addEventListener('input', calculate);
+    numPeopleInput.addEventListener('input', calculate);
+    tipBtns.forEach(btn => btn.addEventListener('click', handleTipBtnClick));
+    customTipInput.addEventListener('input', handleCustomTipInput);
+    
+    // Initial calculation in case of autofill
+    calculate();
+  </script>
+
+  <style>
+    .tip-btn {
+      @apply p-2 border border-gray-300 rounded-lg text-center cursor-pointer transition-colors duration-200;
+    }
+    .tip-btn.active {
+      @apply bg-blue-600 text-white border-blue-600;
+    }
+    .calc-input {
+      @apply focus:ring-blue-500 focus:border-blue-500;
+    }
+  </style>
+</Layout>

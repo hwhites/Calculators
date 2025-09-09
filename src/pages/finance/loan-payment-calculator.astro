@@ -1,0 +1,117 @@
+---
+// src/pages/finance/loan-payment-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Loan Payment Calculator | CourseAssist">
+  <div class="max-w-xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Loan Payment Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Estimate your monthly loan payments.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      <div class="space-y-4">
+        
+        <!-- Loan Amount -->
+        <div>
+          <label for="loanAmount" class="block text-sm font-medium text-gray-700">Loan Amount ($)</label>
+          <input type="number" id="loanAmount" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 250000">
+        </div>
+        
+        <!-- Interest Rate -->
+        <div>
+          <label for="interestRate" class="block text-sm font-medium text-gray-700">Annual Interest Rate (%)</label>
+          <input type="number" id="interestRate" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 5.5">
+        </div>
+        
+        <!-- Loan Term -->
+        <div>
+           <label for="loanTerm" class="block text-sm font-medium text-gray-700">Loan Term</label>
+           <div class="mt-1 flex">
+             <input type="number" id="loanTerm" class="calc-input p-3 border border-gray-300 rounded-l-lg w-full" placeholder="e.g., 30">
+             <button id="years-btn" class="term-btn active" data-unit="years">Years</button>
+             <button id="months-btn" class="term-btn" data-unit="months">Months</button>
+           </div>
+        </div>
+      </div>
+
+      <!-- Results Display -->
+      <div class="mt-8 border-t border-gray-200 pt-6">
+        <div class="flex justify-between items-center">
+          <span class="text-lg font-bold text-gray-800">Monthly Payment:</span>
+          <span id="monthlyPayment" class="text-4xl font-extrabold text-blue-600">--</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const loanAmountInput = document.getElementById('loanAmount');
+    const interestRateInput = document.getElementById('interestRate');
+    const loanTermInput = document.getElementById('loanTerm');
+    const monthlyPaymentDisplay = document.getElementById('monthlyPayment');
+    const termBtns = document.querySelectorAll('.term-btn');
+    const allInputs = [loanAmountInput, interestRateInput, loanTermInput];
+
+    // --- State ---
+    let termUnit = 'years';
+
+    // --- Calculation Logic ---
+    function calculatePayment() {
+      const principal = parseFloat(loanAmountInput.value);
+      const annualRate = parseFloat(interestRateInput.value);
+      const termIn = parseFloat(loanTermInput.value);
+
+      if (isNaN(principal) || isNaN(annualRate) || isNaN(termIn) || principal <= 0 || annualRate <= 0 || termIn <= 0) {
+        monthlyPaymentDisplay.textContent = '--';
+        return;
+      }
+
+      const monthlyRate = (annualRate / 100) / 12;
+      const termInMonths = termUnit === 'years' ? termIn * 12 : termIn;
+      
+      const numerator = monthlyRate * Math.pow(1 + monthlyRate, termInMonths);
+      const denominator = Math.pow(1 + monthlyRate, termInMonths) - 1;
+      const monthlyPayment = principal * (numerator / denominator);
+      
+      if (isFinite(monthlyPayment)) {
+        monthlyPaymentDisplay.textContent = `$${monthlyPayment.toFixed(2)}`;
+      } else {
+        monthlyPaymentDisplay.textContent = '--';
+      }
+    }
+    
+    // --- Event Handlers ---
+    function handleTermUnitChange(e) {
+      termUnit = e.target.dataset.unit;
+      termBtns.forEach(btn => btn.classList.remove('active'));
+      e.target.classList.add('active');
+      calculatePayment();
+    }
+
+    // --- Event Listeners ---
+    allInputs.forEach(input => {
+      input.addEventListener('input', calculatePayment);
+    });
+    termBtns.forEach(btn => {
+      btn.addEventListener('click', handleTermUnitChange);
+    });
+
+  </script>
+  <style>
+    .term-btn {
+      @apply px-4 py-2 border-t border-b border-gray-300 bg-gray-50 text-gray-600 transition-colors duration-200;
+    }
+    .term-btn:last-of-type {
+      @apply rounded-r-lg border-r;
+    }
+    .term-btn.active {
+      @apply bg-blue-600 text-white border-blue-600;
+    }
+  </style>
+</Layout>
+

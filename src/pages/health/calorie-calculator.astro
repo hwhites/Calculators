@@ -1,0 +1,162 @@
+---
+// src/pages/calorie-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Calorie Calculator (BMR, TDEE) | CourseAssist">
+  <div class="max-w-3xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Calorie Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Calculate your daily calorie needs for maintenance, weight loss, or gain.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Left Side: Inputs -->
+        <div class="space-y-4">
+          <!-- Age & Gender -->
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label for="age" class="block text-sm font-medium text-gray-700">Age</label>
+              <input type="number" id="age" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 25">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700">Gender</label>
+              <div class="mt-1 flex rounded-lg border border-gray-300">
+                <button class="gender-btn active w-1/2 p-2 rounded-l-md" data-gender="male">Male</button>
+                <button class="gender-btn w-1/2 p-2 rounded-r-md" data-gender="female">Female</button>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Height -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700">Height</label>
+            <div class="mt-1 flex space-x-2">
+              <input type="number" id="heightFt" class="calc-input w-1/2 p-3 border border-gray-300 rounded-lg" placeholder="ft">
+              <input type="number" id="heightIn" class="calc-input w-1/2 p-3 border border-gray-300 rounded-lg" placeholder="in">
+            </div>
+          </div>
+
+          <!-- Weight -->
+          <div>
+            <label for="weight" class="block text-sm font-medium text-gray-700">Weight (lbs)</label>
+            <input type="number" id="weight" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 160">
+          </div>
+          
+          <!-- Activity Level -->
+          <div>
+            <label for="activity" class="block text-sm font-medium text-gray-700">Activity Level</label>
+            <select id="activity" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-50">
+              <option value="1.2">Sedentary (office job)</option>
+              <option value="1.375">Light Exercise (1-2 days/wk)</option>
+              <option value="1.55">Moderate Exercise (3-5 days/wk)</option>
+              <option value="1.725">Heavy Exercise (6-7 days/wk)</option>
+              <option value="1.9">Athlete (2x per day)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Right Side: Results -->
+        <div class="bg-gray-50 rounded-lg p-6 text-center">
+          <h2 class="text-lg font-bold text-gray-800">Maintenance Calories</h2>
+          <p id="maintenance-calories" class="text-5xl font-extrabold text-blue-600 my-2">--</p>
+          <p class="text-sm text-gray-600">Calories to maintain your current weight.</p>
+          
+          <div class="mt-4 border-t border-gray-200 pt-4 space-y-2 text-left">
+            <div class="flex justify-between">
+              <span class="font-medium text-gray-700">Weight Loss:</span>
+              <span id="loss-calories" class="font-bold text-gray-800">--</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium text-gray-700">Weight Gain:</span>
+              <span id="gain-calories" class="font-bold text-gray-800">--</span>
+            </div>
+             <div class="flex justify-between">
+              <span class="font-medium text-gray-700">Basal Metabolic Rate:</span>
+              <span id="bmr-calories" class="font-bold text-gray-800">--</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const allInputs = document.querySelectorAll('.calc-input, .gender-btn');
+    const genderBtns = document.querySelectorAll('.gender-btn');
+    
+    // --- State ---
+    let gender = 'male';
+
+    // --- Calculation ---
+    function calculateCalories() {
+      const age = parseFloat(document.getElementById('age').value);
+      const heightFt = parseFloat(document.getElementById('heightFt').value) || 0;
+      const heightIn = parseFloat(document.getElementById('heightIn').value) || 0;
+      const weightLbs = parseFloat(document.getElementById('weight').value);
+      const activityMultiplier = parseFloat(document.getElementById('activity').value);
+
+      if (isNaN(age) || (heightFt === 0 && heightIn === 0) || isNaN(weightLbs)) {
+        resetDisplay();
+        return;
+      }
+      
+      // Convert to metric
+      const heightCm = (heightFt * 30.48) + (heightIn * 2.54);
+      const weightKg = weightLbs * 0.453592;
+
+      // Mifflin-St Jeor Equation for BMR
+      let bmr;
+      if (gender === 'male') {
+        bmr = 10 * weightKg + 6.25 * heightCm - 5 * age + 5;
+      } else { // female
+        bmr = 10 * weightKg + 6.25 * heightCm - 5 * age - 161;
+      }
+
+      const tdee = bmr * activityMultiplier; // Total Daily Energy Expenditure (Maintenance)
+
+      // Update display
+      document.getElementById('maintenance-calories').textContent = Math.round(tdee);
+      document.getElementById('loss-calories').textContent = `${Math.round(tdee - 500)} kcal/day`;
+      document.getElementById('gain-calories').textContent = `${Math.round(tdee + 500)} kcal/day`;
+      document.getElementById('bmr-calories').textContent = `${Math.round(bmr)} kcal/day`;
+    }
+    
+    function resetDisplay() {
+        document.getElementById('maintenance-calories').textContent = '--';
+        document.getElementById('loss-calories').textContent = '--';
+        document.getElementById('gain-calories').textContent = '--';
+        document.getElementById('bmr-calories').textContent = '--';
+    }
+
+    // --- Event Handlers ---
+    function handleGenderClick(e) {
+      gender = e.target.dataset.gender;
+      genderBtns.forEach(btn => btn.classList.remove('active'));
+      e.target.classList.add('active');
+      calculateCalories();
+    }
+    
+    // --- Initial Setup ---
+    allInputs.forEach(input => input.addEventListener('input', calculateCalories));
+    genderBtns.forEach(btn => btn.addEventListener('click', handleGenderClick));
+  </script>
+
+  <style>
+    .gender-btn {
+      background-color: #F9FAFB; /* bg-gray-50 */
+      color: #4B5563; /* text-gray-600 */
+      transition: all 0.2s ease-in-out;
+    }
+    .gender-btn.active {
+      background-color: #2563EB; /* bg-blue-600 */
+      color: white;
+      border-color: #2563EB; /* border-blue-600 */
+    }
+  </style>
+</Layout>

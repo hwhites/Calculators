@@ -1,0 +1,179 @@
+---
+// src/pages/pace-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Pace Calculator | CourseAssist">
+  <div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Pace Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Calculate your running pace, time, or distance.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Calculation Mode Tabs -->
+      <div class="flex border-b border-gray-200 mb-6">
+        <button class="tab-btn active" data-mode="pace">Calculate Pace</button>
+        <button class="tab-btn" data-mode="time">Calculate Time</button>
+        <button class="tab-btn" data-mode="distance">Calculate Distance</button>
+      </div>
+
+      <!-- Input Sections -->
+      <div class="space-y-6">
+        
+        <!-- Distance Section -->
+        <div id="distance-section" class="input-section">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Distance</label>
+          <div class="flex space-x-2">
+            <input type="number" id="distValue" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 5">
+            <select id="distUnit" class="calc-input p-3 border border-gray-300 rounded-lg bg-gray-50">
+              <option value="km">Kilometers</option>
+              <option value="mi">Miles</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Time Section -->
+        <div id="time-section" class="input-section">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Time</label>
+          <div class="grid grid-cols-3 gap-2">
+            <input type="number" id="timeHours" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="HH">
+            <input type="number" id="timeMins" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="MM">
+            <input type="number" id="timeSecs" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="SS">
+          </div>
+        </div>
+
+        <!-- Pace Section -->
+        <div id="pace-section" class="input-section">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Pace</p>
+          <div class="flex space-x-2">
+            <input type="number" id="paceMins" class="calc-input w-2/5 p-3 border border-gray-300 rounded-lg" placeholder="MM">
+            <input type="number" id="paceSecs" class="calc-input w-2/5 p-3 border border-gray-300 rounded-lg" placeholder="SS">
+            <select id="paceUnit" class="calc-input w-3/5 p-3 border border-gray-300 rounded-lg bg-gray-50">
+              <option value="min/km">min/km</option>
+              <option value="min/mi">min/mi</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const tabs = document.querySelectorAll('.tab-btn');
+    const sections = document.querySelectorAll('.input-section');
+    const inputs = document.querySelectorAll('.calc-input');
+
+    let currentMode = 'pace'; // Default mode
+
+    // --- Input Getters ---
+    const get = {
+      distance: () => {
+        const val = parseFloat(document.getElementById('distValue').value) || 0;
+        const unit = document.getElementById('distUnit').value;
+        return unit === 'km' ? val * 1000 : val * 1609.34; // return in meters
+      },
+      time: () => {
+        const h = parseFloat(document.getElementById('timeHours').value) || 0;
+        const m = parseFloat(document.getElementById('timeMins').value) || 0;
+        const s = parseFloat(document.getElementById('timeSecs').value) || 0;
+        return (h * 3600) + (m * 60) + s; // return in seconds
+      },
+      pace: () => {
+        const m = parseFloat(document.getElementById('paceMins').value) || 0;
+        const s = parseFloat(document.getElementById('paceSecs').value) || 0;
+        const unit = document.getElementById('paceUnit').value;
+        const totalSeconds = (m * 60) + s;
+        return unit === 'min/km' ? totalSeconds / 1000 : totalSeconds / 1609.34; // return seconds per meter
+      }
+    }
+
+    // --- Result Setters ---
+    const set = {
+      distance: (meters) => {
+        const unit = document.getElementById('distUnit').value;
+        const val = unit === 'km' ? meters / 1000 : meters / 1609.34;
+        document.getElementById('distValue').value = val > 0 ? val.toFixed(2) : '';
+      },
+      time: (seconds) => {
+        const h = Math.floor(seconds / 3600);
+        const m = Math.floor((seconds % 3600) / 60);
+        const s = Math.round(seconds % 60);
+        document.getElementById('timeHours').value = h > 0 ? h : '';
+        document.getElementById('timeMins').value = m > 0 ? m : '';
+        document.getElementById('timeSecs').value = s > 0 ? s : '';
+      },
+      pace: (secondsPerMeter) => {
+        const unit = document.getElementById('paceUnit').value;
+        const totalSeconds = unit === 'min/km' ? secondsPerMeter * 1000 : secondsPerMeter * 1609.34;
+        const m = Math.floor(totalSeconds / 60);
+        const s = Math.round(totalSeconds % 60);
+        document.getElementById('paceMins').value = m > 0 ? m : '';
+        document.getElementById('paceSecs').value = s > 0 ? s : '';
+      }
+    }
+
+    // --- Core Functions ---
+    function calculate() {
+      const distance = get.distance();
+      const time = get.time();
+      const pace = get.pace();
+
+      if (currentMode === 'pace' && distance > 0 && time > 0) {
+        set.pace(time / distance);
+      } else if (currentMode === 'time' && distance > 0 && pace > 0) {
+        set.time(distance * pace);
+      } else if (currentMode === 'distance' && time > 0 && pace > 0) {
+        set.distance(time / pace);
+      }
+    }
+    
+    function updateUI() {
+      sections.forEach(s => s.style.opacity = '1');
+      document.getElementById(`${currentMode}-section`).style.opacity = '0.5';
+
+      // Clear the calculated field's inputs
+      const targetInputs = document.getElementById(`${currentMode}-section`).querySelectorAll('input');
+      targetInputs.forEach(input => input.value = '');
+    }
+
+    function switchMode(e) {
+      currentMode = e.target.dataset.mode;
+      tabs.forEach(tab => tab.classList.remove('active'));
+      e.target.classList.add('active');
+      updateUI();
+    }
+
+    // --- Event Listeners ---
+    tabs.forEach(tab => tab.addEventListener('click', switchMode));
+    inputs.forEach(input => input.addEventListener('input', calculate));
+
+    // --- Initial Setup ---
+    updateUI();
+  </script>
+
+  <style>
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 500;
+      color: #4B5563; /* text-gray-600 */
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px; /* Overlap with container border */
+    }
+    .tab-btn.active {
+      color: #2563EB; /* text-blue-600 */
+      border-bottom-color: #2563EB; /* border-blue-600 */
+      font-weight: 600;
+    }
+    .input-section {
+      transition: opacity 0.2s ease-in-out;
+    }
+  </style>
+</Layout>

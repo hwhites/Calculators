@@ -1,0 +1,143 @@
+---
+// src/pages/utility/age-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Age Calculator | CourseAssist">
+  <div class="max-w-xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Age Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Find your exact age in years, months, days, and more.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Date Input -->
+      <div>
+        <label for="month" class="block text-sm font-medium text-gray-700">Date of Birth</label>
+        <div class="mt-1 grid grid-cols-3 gap-4">
+          <input type="number" id="month" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="MM">
+          <input type="number" id="day" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="DD">
+          <input type="number" id="year" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="YYYY">
+        </div>
+      </div>
+
+      <!-- Results Display -->
+      <div class="mt-8 border-t border-gray-200 pt-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 text-center">Your Age Is:</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="years" class="text-4xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Years</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="months" class="text-4xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Months</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="days" class="text-4xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Days</p>
+          </div>
+        </div>
+        
+        <!-- Additional Stats -->
+        <div class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4 text-center">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="totalMonths" class="text-3xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Total Months</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="totalDays" class="text-3xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Total Days</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const monthInput = document.getElementById('month');
+    const dayInput = document.getElementById('day');
+    const yearInput = document.getElementById('year');
+    const allInputs = [monthInput, dayInput, yearInput];
+    
+    const yearsDisplay = document.getElementById('years');
+    const monthsDisplay = document.getElementById('months');
+    const daysDisplay = document.getElementById('days');
+    const totalMonthsDisplay = document.getElementById('totalMonths');
+    const totalDaysDisplay = document.getElementById('totalDays');
+
+    // --- Calculation Logic ---
+    function calculateAge() {
+      const month = parseInt(monthInput.value);
+      const day = parseInt(dayInput.value);
+      const year = parseInt(yearInput.value);
+
+      // Basic validation
+      if (isNaN(month) || isNaN(day) || isNaN(year) || year < 1000 || year > new Date().getFullYear() || month < 1 || month > 12 || day < 1 || day > 31) {
+        resetDisplay();
+        return;
+      }
+      
+      const birthDate = new Date(year, month - 1, day); // month is 0-indexed
+      const today = new Date();
+
+      // Check for invalid date (e.g., Feb 30)
+      if (birthDate.getFullYear() !== year || birthDate.getMonth() !== month - 1 || birthDate.getDate() !== day) {
+        resetDisplay();
+        return;
+      }
+      
+      if (birthDate > today) {
+        resetDisplay();
+        return;
+      }
+
+      // --- Years, Months, Days Calculation ---
+      let ageYears = today.getFullYear() - birthDate.getFullYear();
+      let ageMonths = today.getMonth() - birthDate.getMonth();
+      let ageDays = today.getDate() - birthDate.getDate();
+
+      if (ageDays < 0) {
+        ageMonths--;
+        // Get the last day of the previous month
+        const lastDayOfPrevMonth = new Date(today.getFullYear(), today.getMonth(), 0).getDate();
+        ageDays += lastDayOfPrevMonth;
+      }
+
+      if (ageMonths < 0) {
+        ageYears--;
+        ageMonths += 12;
+      }
+
+      yearsDisplay.textContent = ageYears;
+      monthsDisplay.textContent = ageMonths;
+      daysDisplay.textContent = ageDays;
+      
+      // --- Total Months and Days Calculation ---
+      const totalMonths = ageYears * 12 + ageMonths;
+      const diffTime = Math.abs(today - birthDate);
+      const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+      
+      totalMonthsDisplay.textContent = totalMonths;
+      totalDaysDisplay.textContent = totalDays.toLocaleString();
+    }
+
+    function resetDisplay() {
+      yearsDisplay.textContent = '--';
+      monthsDisplay.textContent = '--';
+      daysDisplay.textContent = '--';
+      totalMonthsDisplay.textContent = '--';
+      totalDaysDisplay.textContent = '--';
+    }
+
+    // --- Event Listeners ---
+    allInputs.forEach(input => {
+      input.addEventListener('input', calculateAge);
+    });
+  </script>
+</Layout>
+

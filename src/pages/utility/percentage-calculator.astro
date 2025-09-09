@@ -1,0 +1,159 @@
+---
+// src/pages/percentage-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Percentage Calculator | CourseAssist">
+  <div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Percentage Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">A simple tool for your percentage calculations.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Calculation Mode Tabs -->
+      <div class="flex flex-wrap border-b border-gray-200 mb-6">
+        <button id="tab1" class="tab-btn active" data-mode="percentOf">What is X% of Y?</button>
+        <button id="tab2" class="tab-btn" data-mode="xIsWhatPercentOfY">X is what % of Y?</button>
+        <button id="tab3" class="tab-btn" data-mode="percentChange">% Increase/Decrease</button>
+        <button id="tab4" class="tab-btn" data-mode="yPercentOfWhat">X is Y% of what?</button>
+      </div>
+
+      <!-- Input Area -->
+      <div id="input-area" class="space-y-4">
+        <!-- Inputs will be dynamically generated here by JS -->
+      </div>
+      
+      <!-- Result Area -->
+      <div class="mt-6 bg-gray-50 rounded-lg p-6 text-center">
+        <h2 class="text-lg font-bold text-gray-800">Result:</h2>
+        <p id="result-display" class="text-5xl font-extrabold text-blue-600 my-2">--</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const tabs = document.querySelectorAll('.tab-btn');
+    const inputArea = document.getElementById('input-area');
+    const resultDisplay = document.getElementById('result-display');
+    let currentMode = 'percentOf'; // Default mode
+
+    // --- Templates for different calculator modes ---
+    const templates = {
+      percentOf: `
+        <div class="flex items-center space-x-4">
+          <input type="number" id="percent" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Percent (%)">
+          <span class="text-gray-500">of</span>
+          <input type="number" id="num" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Number">
+        </div>
+      `,
+      xIsWhatPercentOfY: `
+        <div class="flex items-center space-x-4">
+          <input type="number" id="num1" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Number">
+          <span class="text-gray-500">is what percent of</span>
+          <input type="number" id="num2" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Number">
+        </div>
+      `,
+      percentChange: `
+        <div class="flex items-center space-x-4">
+          <span class="text-gray-500">From</span>
+          <input type="number" id="num1" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Initial Value">
+          <span class="text-gray-500">to</span>
+          <input type="number" id="num2" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Final Value">
+        </div>
+      `,
+      yPercentOfWhat: `
+        <div class="flex items-center space-x-4">
+          <input type="number" id="num1" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Number">
+          <span class="text-gray-500">is</span>
+          <input type="number" id="percent" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="Percent (%)">
+          <span class="text-gray-500">of what?</span>
+        </div>
+      `
+    };
+
+    // --- Calculation Logic ---
+    const calculations = {
+      percentOf: () => {
+        const percent = parseFloat(document.getElementById('percent').value);
+        const num = parseFloat(document.getElementById('num').value);
+        if (isNaN(percent) || isNaN(num)) return '--';
+        return (percent / 100) * num;
+      },
+      xIsWhatPercentOfY: () => {
+        const num1 = parseFloat(document.getElementById('num1').value);
+        const num2 = parseFloat(document.getElementById('num2').value);
+        if (isNaN(num1) || isNaN(num2) || num2 === 0) return '--';
+        const result = (num1 / num2) * 100;
+        return `${result.toFixed(2)}%`;
+      },
+      percentChange: () => {
+        const num1 = parseFloat(document.getElementById('num1').value);
+        const num2 = parseFloat(document.getElementById('num2').value);
+        if (isNaN(num1) || isNaN(num2) || num1 === 0) return '--';
+        const result = ((num2 - num1) / num1) * 100;
+        const changeType = result >= 0 ? 'increase' : 'decrease';
+        return `${Math.abs(result).toFixed(2)}% ${changeType}`;
+      },
+      yPercentOfWhat: () => {
+        const num1 = parseFloat(document.getElementById('num1').value);
+        const percent = parseFloat(document.getElementById('percent').value);
+        if (isNaN(num1) || isNaN(percent) || percent === 0) return '--';
+        return num1 / (percent / 100);
+      }
+    };
+
+    // --- Core Functions ---
+    function renderInputs() {
+      inputArea.innerHTML = templates[currentMode];
+      attachInputListeners();
+      calculate();
+    }
+
+    function calculate() {
+      const result = calculations[currentMode]();
+      resultDisplay.textContent = result === '--' ? '--' : result;
+    }
+
+    function switchMode(e) {
+      currentMode = e.target.dataset.mode;
+      tabs.forEach(tab => tab.classList.remove('active'));
+      e.target.classList.add('active');
+      renderInputs();
+    }
+
+    function attachInputListeners() {
+      const inputs = document.querySelectorAll('.calc-input');
+      inputs.forEach(input => {
+        input.addEventListener('input', calculate);
+      });
+    }
+
+    // --- Initial Setup ---
+    tabs.forEach(tab => tab.addEventListener('click', switchMode));
+    renderInputs(); // Render the initial "percentOf" mode
+  </script>
+
+  <style>
+    .tab-btn {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 500;
+      color: #4B5563; /* text-gray-600 */
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px; /* Overlap with container border */
+    }
+    .tab-btn.active {
+      color: #2563EB; /* text-blue-600 */
+      border-bottom-color: #2563EB; /* border-blue-600 */
+      font-weight: 600;
+    }
+  </style>
+</Layout>
+

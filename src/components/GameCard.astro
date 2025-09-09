@@ -1,0 +1,19 @@
+---
+// src/components/GameCard.astro
+export interface Props {
+	title: string;
+	author: string;
+	href: string;
+	imgSrc: string;
+}
+
+const { title, author, href, imgSrc } = Astro.props;
+---
+
+<a href={href} class="block bg-white border border-gray-200 rounded-xl shadow-md group hover:shadow-xl transition-shadow duration-200 overflow-hidden">
+  <img src={imgSrc} alt=`Screenshot of ${title}` class="w-full h-40 object-cover" />
+  <div class="p-4">
+    <h3 class="font-bold text-gray-800 truncate">{title}</h3>
+    <p class="text-sm text-gray-500">by {author}</p>
+  </div>
+</a>

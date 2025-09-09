@@ -1,0 +1,140 @@
+---
+// src/pages/cooking-converter.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Cooking Measurement Converter | CourseAssist">
+  <div class="max-w-xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Cooking Converter</h1>
+      <p class="mt-2 text-lg text-gray-600">Convert between weight and volume for common ingredients.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Input Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Amount -->
+        <div>
+          <label for="amount" class="block text-sm font-medium text-gray-700">Amount</label>
+          <input type="number" id="amount" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg text-xl" value="1">
+        </div>
+        <!-- Ingredient -->
+        <div>
+          <label for="ingredient" class="block text-sm font-medium text-gray-700">Ingredient</label>
+          <select id="ingredient" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-50"></select>
+        </div>
+      </div>
+      
+      <!-- Conversion Selectors -->
+      <div class="mt-4 grid grid-cols-11 gap-2 items-center">
+        <div class="col-span-5">
+            <label for="fromUnit" class="block text-sm font-medium text-gray-700">From</label>
+            <select id="fromUnit" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-50"></select>
+        </div>
+        <div class="text-center mt-6">
+             <span class="text-2xl font-bold text-gray-500">&harr;</span>
+        </div>
+        <div class="col-span-5">
+            <label for="toUnit" class="block text-sm font-medium text-gray-700">To</label>
+            <select id="toUnit" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-50"></select>
+        </div>
+      </div>
+
+
+      <!-- Results Display -->
+      <div class="mt-8 border-t border-gray-200 pt-6 text-center">
+        <p id="result-display" class="text-4xl font-extrabold text-blue-600 my-2">--</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Ingredient Density and Unit Conversion Data ---
+    // Base unit is grams (g)
+    const ingredients = {
+        'flour-ap': { name: 'Flour (All-Purpose)', gPerCup: 120 },
+        'sugar-granulated': { name: 'Sugar (Granulated)', gPerCup: 200 },
+        'sugar-brown': { name: 'Sugar (Brown, packed)', gPerCup: 220 },
+        'butter': { name: 'Butter', gPerCup: 227 },
+        'water': { name: 'Water / Milk', gPerCup: 240 },
+        'oil': { name: 'Oil', gPerCup: 224 },
+    };
+
+    const units = {
+        'cup': { name: 'Cup (US)', type: 'volume', ratio: 1 },
+        'tbsp': { name: 'Tablespoon (US)', type: 'volume', ratio: 16 },
+        'tsp': { name: 'Teaspoon (US)', type: 'volume', ratio: 48 },
+        'ml': { name: 'Milliliter', type: 'volume', ratio: 236.588 },
+        'g': { name: 'Grams', type: 'weight', ratio: 1 },
+        'oz': { name: 'Ounces', type: 'weight', ratio: 0.035274 },
+        'lb': { name: 'Pounds', type: 'weight', ratio: 0.00220462 },
+    };
+
+    // --- DOM Elements ---
+    const amountInput = document.getElementById('amount');
+    const ingredientSelect = document.getElementById('ingredient');
+    const fromUnitSelect = document.getElementById('fromUnit');
+    const toUnitSelect = document.getElementById('toUnit');
+    const resultDisplay = document.getElementById('result-display');
+    const allInputs = [amountInput, ingredientSelect, fromUnitSelect, toUnitSelect];
+
+    // --- Core Functions ---
+    function populateSelects() {
+        // Populate ingredients
+        for (const key in ingredients) {
+            ingredientSelect.add(new Option(ingredients[key].name, key));
+        }
+        // Populate units
+        for (const key in units) {
+            fromUnitSelect.add(new Option(units[key].name, key));
+            toUnitSelect.add(new Option(units[key].name, key));
+        }
+        // Set default values
+        fromUnitSelect.value = 'cup';
+        toUnitSelect.value = 'g';
+    }
+
+    function convert() {
+        const amount = parseFloat(amountInput.value) || 0;
+        const ingredient = ingredients[ingredientSelect.value];
+        const fromUnit = units[fromUnitSelect.value];
+        const toUnit = units[toUnitSelect.value];
+
+        if (amount === 0) {
+            resultDisplay.textContent = '--';
+            return;
+        }
+
+        // 1. Convert input amount to base unit (grams)
+        let amountInGrams;
+        if (fromUnit.type === 'volume') {
+            const amountInCups = amount / fromUnit.ratio;
+            amountInGrams = amountInCups * ingredient.gPerCup;
+        } else { // weight
+            amountInGrams = amount / fromUnit.ratio;
+        }
+
+        // 2. Convert from grams to the target unit
+        let result;
+        if (toUnit.type === 'volume') {
+            const resultInCups = amountInGrams / ingredient.gPerCup;
+            result = resultInCups * toUnit.ratio;
+        } else { // weight
+            result = amountInGrams * toUnit.ratio;
+        }
+
+        const resultString = `${result.toLocaleString(undefined, { maximumFractionDigits: 2 })} ${toUnitSelect.value}`;
+        resultDisplay.textContent = resultString;
+    }
+
+    // --- Initial Setup ---
+    document.addEventListener('DOMContentLoaded', () => {
+        populateSelects();
+        allInputs.forEach(input => input.addEventListener('input', convert));
+        convert(); // Initial calculation
+    });
+  </script>
+</Layout>

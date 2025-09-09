@@ -1,0 +1,45 @@
+---
+// src/pages/about.astro
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="About CourseAssist">
+  <div class="max-w-3xl mx-auto px-4">
+    <!-- Page Header -->
+    <div class="text-center pt-12 pb-8">
+      <h1 class="text-5xl font-bold text-gray-800">About CourseAssist</h1>
+      <p class="mt-4 text-xl text-gray-600">
+        Providing simple, powerful tools for everyone.
+      </p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="prose prose-lg max-w-none text-gray-700">
+      <p>
+        CourseAssist was founded on a simple principle: everyone deserves access to high-quality, easy-to-use digital tools without the frustration of subscriptions, sign-ups, or intrusive ads. We saw a need for a central place where students, professionals, and curious individuals could find reliable calculators and converters that just work.
+      </p>
+      
+      <h2 class="text-3xl font-bold text-gray-800 mt-12">Our Mission</h2>
+      <p>
+        Our goal is to build a comprehensive suite of calculators that are fast, accurate, and completely free. Whether you're a student trying to calculate your GPA, a homeowner planning a project, or a professional tracking work hours, our tools are designed to give you the answers you need quickly and efficiently.
+      </p>
+      
+      <h2 class="text-3xl font-bold text-gray-800 mt-12">Why We're Different</h2>
+      <ul class="list-disc pl-6 space-y-2">
+        <li><strong>Completely Free:</strong> We believe essential tools should be accessible to all. Our site is supported by non-intrusive ads, allowing us to keep all calculators free.</li>
+        <li><strong>Privacy-Focused:</strong> We don't ask for your email or personal information. Your calculations are your own, and your data is saved only in your browser for your convenience.</li>
+        <li><strong>Clean and Fast:</strong> We are committed to a user experience that is uncluttered and lightning-fast, so you can get your answer and get on with your day.</li>
+      </ul>
+
+    </div>
+  </div>
+  <style>
+    /* Basic styling for the prose class to make text look good */
+    .prose p {
+        margin-bottom: 1.25em;
+    }
+    .prose h2 {
+        margin-bottom: 1em;
+    }
+  </style>
+</Layout>

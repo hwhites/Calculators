@@ -1,0 +1,134 @@
+---
+// src/pages/inflation-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Inflation Calculator | CourseAssist">
+  <div class="max-w-xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Inflation Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">See how the value of money has changed over time.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Input Grid -->
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <!-- Amount -->
+        <div class="sm:col-span-3">
+          <label for="initialAmount" class="block text-sm font-medium text-gray-700">Amount ($)</label>
+          <input type="number" id="initialAmount" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg text-2xl" placeholder="e.g., 100">
+        </div>
+        <!-- Start Year -->
+        <div>
+          <label for="startYear" class="block text-sm font-medium text-gray-700">Start Year</label>
+          <select id="startYear" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-50"></select>
+        </div>
+        <div class="flex items-end justify-center">
+            <span class="text-2xl font-bold text-gray-500">&rarr;</span>
+        </div>
+        <!-- End Year -->
+        <div>
+          <label for="endYear" class="block text-sm font-medium text-gray-700">End Year</label>
+          <select id="endYear" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-50"></select>
+        </div>
+      </div>
+
+      <!-- Results Display -->
+      <div class="mt-8 border-t border-gray-200 pt-6 text-center">
+        <p class="text-lg text-gray-600">
+          $<span id="start-amount-display">100</span> in <span id="start-year-display">1980</span> is worth
+        </p>
+        <p id="adjusted-amount-display" class="text-5xl font-extrabold text-blue-600 my-2">$0.00</p>
+        <p class="text-lg text-gray-600">
+          in <span id="end-year-display">2023</span> dollars.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Historical Consumer Price Index (CPI) Data (Annual Average) ---
+    // Source: U.S. Bureau of Labor Statistics (BLS)
+    const cpiData = {
+      1913: 9.9, 1914: 10.0, 1915: 10.1, 1916: 10.9, 1917: 12.8, 1918: 15.1, 1919: 17.3,
+      1920: 20.0, 1921: 17.9, 1922: 16.8, 1923: 17.1, 1924: 17.1, 1925: 17.5, 1926: 17.7,
+      1927: 17.4, 1928: 17.2, 1929: 17.1, 1930: 16.7, 1931: 15.2, 1932: 13.7, 1933: 13.0,
+      1934: 13.4, 1935: 13.7, 1936: 13.9, 1937: 14.4, 1938: 14.1, 1939: 13.9, 1940: 14.0,
+      1941: 14.7, 1942: 16.3, 1943: 17.3, 1944: 17.6, 1945: 18.0, 1946: 19.5, 1947: 22.3,
+      1948: 24.0, 1949: 23.8, 1950: 24.1, 1951: 26.0, 1952: 26.6, 1953: 26.7, 1954: 26.9,
+      1955: 26.8, 1956: 27.2, 1957: 28.1, 1958: 28.9, 1959: 29.2, 1960: 29.6, 1961: 29.9,
+      1962: 30.3, 1963: 30.6, 1964: 31.0, 1965: 31.5, 1966: 32.5, 1967: 33.4, 1968: 34.8,
+      1969: 36.7, 1970: 38.8, 1971: 40.5, 1972: 41.8, 1973: 44.4, 1974: 49.3, 1975: 53.8,
+      1976: 56.9, 1977: 60.6, 1978: 65.2, 1979: 72.6, 1980: 82.4, 1981: 90.9, 1982: 96.5,
+      1983: 99.6, 1984: 103.9, 1985: 107.6, 1986: 109.6, 1987: 113.6, 1988: 118.3, 1989: 124.0,
+      1990: 130.7, 1991: 136.2, 1992: 140.3, 1993: 144.5, 1994: 148.2, 1995: 152.4, 1996: 156.9,
+      1997: 160.5, 1998: 163.0, 1999: 166.6, 2000: 172.2, 2001: 177.1, 2002: 179.9, 2003: 184.0,
+      2004: 188.9, 2005: 195.3, 2006: 201.6, 2007: 207.3, 2008: 215.3, 2009: 214.5, 2010: 218.1,
+      2011: 224.9, 2012: 229.6, 2013: 233.0, 2014: 236.7, 2015: 237.0, 2016: 240.0, 2017: 245.1,
+      2018: 251.1, 2019: 255.7, 2020: 258.8, 2021: 271.0, 2022: 292.6, 2023: 304.7, 2024: 314.0
+    };
+
+    // --- DOM Elements ---
+    const initialAmountInput = document.getElementById('initialAmount');
+    const startYearSelect = document.getElementById('startYear');
+    const endYearSelect = document.getElementById('endYear');
+    const allInputs = [initialAmountInput, startYearSelect, endYearSelect];
+
+    const startAmountDisplay = document.getElementById('start-amount-display');
+    const startYearDisplay = document.getElementById('start-year-display');
+    const endYearDisplay = document.getElementById('end-year-display');
+    const adjustedAmountDisplay = document.getElementById('adjusted-amount-display');
+
+    // --- Core Functions ---
+    function populateYears() {
+      const years = Object.keys(cpiData).sort((a, b) => b - a); // Newest first
+      years.forEach(year => {
+        const option1 = new Option(year, year);
+        const option2 = new Option(year, year);
+        startYearSelect.add(option1);
+        endYearSelect.add(option2);
+      });
+      // Set default values
+      startYearSelect.value = '1980';
+      endYearSelect.value = years[0]; // Most recent year
+    }
+
+    function calculateInflation() {
+      const amount = parseFloat(initialAmountInput.value) || 0;
+      const startYear = startYearSelect.value;
+      const endYear = endYearSelect.value;
+
+      if (!amount || !startYear || !endYear) {
+        resetDisplay();
+        return;
+      }
+      
+      const startCPI = cpiData[startYear];
+      const endCPI = cpiData[endYear];
+      
+      const adjustedAmount = amount * (endCPI / startCPI);
+      
+      // Update Display
+      startAmountDisplay.textContent = amount.toLocaleString('en-US');
+      startYearDisplay.textContent = startYear;
+      endYearDisplay.textContent = endYear;
+      adjustedAmountDisplay.textContent = `$${adjustedAmount.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
+    }
+
+    function resetDisplay() {
+        adjustedAmountDisplay.textContent = '$0.00';
+    }
+
+    // --- Initial Setup ---
+    document.addEventListener('DOMContentLoaded', () => {
+      populateYears();
+      allInputs.forEach(input => input.addEventListener('input', calculateInflation));
+      // Set a default amount and calculate on load
+      initialAmountInput.value = 100;
+      calculateInflation();
+    });
+  </script>
+</Layout>

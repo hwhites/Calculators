@@ -1,0 +1,135 @@
+---
+// src/pages/index.astro
+import Layout from '../layouts/Layout.astro';
+import CalculatorCard from '../components/CalculatorCard.astro';
+
+// Central data source for all calculators
+const calculators = [
+  // Academic
+  { title: "GPA Calculator", description: "Calculate your semester or cumulative Grade Point Average.", href: "/academic/gpa-calculator", icon: "calculator", category: "academic" },
+  { title: "Final Grade Calculator", description: "Find out what grade you need on your final exam.", href: "/academic/final-grade-calculator", icon: "chart-pie", category: "academic" },
+  { title: "Quadratic Solver", description: "Solves equations in the form ax² + bx + c = 0.", href: "/academic/quadratic-solver", icon: "variable", category: "academic" },
+  
+  // Finance
+  { title: "Loan Payment Calculator", description: "Estimate your monthly loan payments for mortgages, auto, etc.", href: "/finance/loan-payment-calculator", icon: "banknotes", category: "finance" },
+  { title: "Inflation Calculator", description: "See how the value of money has changed over time.", href: "/finance/inflation-calculator", icon: "receipt-percent", category: "finance" },
+  { title: "Sales Tax Calculator", description: "Quickly calculate sales tax and the final price of an item.", href: "/finance/sales-tax-calculator", icon: "shopping-cart", category: "finance" },
+  { title: "Savings Goal Calculator", description: "Find out how long it will take to reach your savings goal.", href: "/finance/savings-goal-calculator", icon: "flag", category: "finance" },
+  { title: "Tip Calculator", description: "Calculate tips and easily split the bill with friends.", href: "/finance/tip-calculator", icon: "currency-dollar", category: "finance" },
+
+  // Health
+  { title: "BMI Calculator", description: "Calculate your Body Mass Index to assess your weight status.", href: "/health/bmi-calculator", icon: "heart", category: "health" },
+  { title: "Calorie Calculator", description: "Calculate your daily calorie needs for your goals.", href: "/health/calorie-calculator", icon: "fire", category: "health" },
+  { title: "Pace Calculator", description: "Calculate your running pace, time, or distance.", href: "/health/pace-calculator", icon: "clock", category: "health" },
+
+  // Utility
+  { title: "Age Calculator", description: "Find your age in years, months, days, and more.", href: "/utility/age-calculator", icon: "cake", category: "utility" },
+  { title: "Concrete Calculator", description: "Estimate the volume of concrete needed for a project.", href: "/utility/concrete-calculator", icon: "cube", category: "utility" },
+  { title: "Cooking Converter", description: "Convert between weight and volume for ingredients.", href: "/utility/cooking-converter", icon: "beaker", category: "utility" },
+  { title: "Date Duration Calculator", description: "Calculate the time between two dates.", href: "/utility/date-duration-calculator", icon: "calendar-days", category: "utility" },
+  { title: "Time Card Calculator", description: "Calculate total work hours for a pay period.", href: "/utility/time-card-calculator", icon: "identification", category: "utility" },
+  { title: "Unit Converter", description: "Convert length, weight, temperature, and more.", href: "/utility/unit-converter", icon: "arrows-right-left", category: "utility" },
+];
+---
+
+<Layout title="CourseAssist | Free Academic & Utility Calculators">
+  <main>
+    <!-- Hero Section -->
+    <section class="text-center py-20">
+      <h1 class="text-5xl font-bold text-gray-800">
+        Your Go-To Calculator Suite.
+      </h1>
+      <p class="mt-4 text-lg text-gray-600 max-w-2xl mx-auto">
+        A collection of free, fast, and accurate calculators for academic, financial, health, and general utility needs.
+      </p>
+    </section>
+
+    <!-- Calculator Grid Section -->
+    <section class="px-4">
+      <div class="max-w-6xl mx-auto">
+        
+        <!-- Filter and Search Controls -->
+        <div class="mb-8">
+            <div class="flex flex-wrap items-center justify-center gap-2 mb-4">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="academic">Academic</button>
+                <button class="filter-btn" data-filter="finance">Finance</button>
+                <button class="filter-btn" data-filter="health">Health</button>
+                <button class="filter-btn" data-filter="utility">Utility</button>
+            </div>
+            <div class="max-w-lg mx-auto">
+                <input type="text" id="search-input" placeholder="Search for a calculator..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500">
+            </div>
+        </div>
+        
+        <!-- Grid Container -->
+        <div id="calculator-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          {calculators.map(calc => (
+            <div class="calculator-card-wrapper" data-category={calc.category} data-title={calc.title.toLowerCase()}>
+              <CalculatorCard
+                title={calc.title}
+                description={calc.description}
+                href={calc.href}
+                icon={calc.icon}
+              />
+            </div>
+          ))}
+
+        </div>
+        <p id="no-results" class="text-center text-gray-500 text-lg mt-8 hidden">No calculators found.</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const filterBtns = document.querySelectorAll('.filter-btn');
+    const searchInput = document.getElementById('search-input');
+    const calculatorCards = document.querySelectorAll('.calculator-card-wrapper');
+    const noResultsMessage = document.getElementById('no-results');
+    
+    let activeFilter = 'all';
+
+    function filterAndSearch() {
+        const searchTerm = searchInput.value.toLowerCase();
+        let resultsFound = false;
+
+        calculatorCards.forEach(card => {
+            const category = card.dataset.category;
+            const title = card.dataset.title;
+
+            const categoryMatch = activeFilter === 'all' || category === activeFilter;
+            const searchMatch = title.includes(searchTerm);
+
+            if (categoryMatch && searchMatch) {
+                card.classList.remove('hidden');
+                resultsFound = true;
+            } else {
+                card.classList.add('hidden');
+            }
+        });
+        
+        noResultsMessage.classList.toggle('hidden', resultsFound);
+    }
+
+    filterBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            filterBtns.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            activeFilter = btn.dataset.filter;
+            filterAndSearch();
+        });
+    });
+
+    searchInput.addEventListener('input', filterAndSearch);
+  </script>
+
+  <style>
+    .filter-btn {
+        @apply px-4 py-2 rounded-full font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition-colors;
+    }
+    .filter-btn.active {
+        @apply bg-blue-600 text-white hover:bg-blue-700;
+    }
+  </style>
+</Layout>

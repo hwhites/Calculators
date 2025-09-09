@@ -1,0 +1,39 @@
+---
+// src/components/CalculatorCard.astro
+import { Icon } from 'astro-icon/components';
+
+export interface Props {
+	title: string;
+	description: string;
+	href: string;
+	icon: 'calculator' | 'chart-pie' | 'percentage';
+}
+
+const { title, description, href, icon } = Astro.props;
+---
+
+<a href={href} class="block bg-white border border-gray-200 rounded-xl shadow-md p-6 group hover:shadow-xl transition-shadow duration-200">
+  <!-- Icon Container -->
+  <div class="bg-blue-100 rounded-lg w-12 h-12 flex items-center justify-center">
+    <!-- 
+      This uses an icon library. To make this work, run `npx astro add astro-icon` in your StackBlitz terminal.
+      It will install 'heroicons' by default, which we are using here.
+    -->
+    <Icon name={`heroicons:${icon}`} class="h-6 w-6 text-blue-600" />
+  </div>
+  
+  <!-- Content -->
+  <div>
+    <h3 class="text-xl font-bold text-gray-800 mt-4">
+      {title}
+    </h3>
+    <p class="text-gray-600 mt-2">
+      {description}
+    </p>
+  </div>
+  
+  <!-- "Go to" Link (visibly hidden, revealed to screen readers) -->
+  <span class="inline-block font-semibold text-blue-600 mt-6 group-hover:underline">
+    Open Tool &rarr;
+  </span>
+</a>

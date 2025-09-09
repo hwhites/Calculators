@@ -1,0 +1,143 @@
+---
+// src/pages/unit-converter.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Unit Converter | CourseAssist">
+  <div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Unit Converter</h1>
+      <p class="mt-2 text-lg text-gray-600">Quickly convert between different units.</p>
+    </div>
+
+    <!-- Converter Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Category Selection -->
+      <div class="mb-6">
+        <label for="category" class="block text-sm font-medium text-gray-700">Category</label>
+        <select id="category" class="mt-1 w-full p-3 border border-gray-300 rounded-lg">
+          <option value="length">Length</option>
+          <option value="weight">Weight</option>
+          <option value="temperature">Temperature</option>
+        </select>
+      </div>
+
+      <!-- Conversion Inputs -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+        <div>
+          <label for="fromUnit" class="block text-sm font-medium text-gray-700">From</label>
+          <div class="flex">
+            <input type="number" id="fromValue" class="mt-1 w-full p-3 border border-gray-300 rounded-l-lg" value="1">
+            <select id="fromUnit" class="mt-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg bg-gray-50"></select>
+          </div>
+        </div>
+        <div>
+          <label for="toUnit" class="block text-sm font-medium text-gray-700">To</label>
+           <div class="flex">
+            <p id="toValue" class="mt-1 w-full p-3 border border-gray-200 rounded-l-lg bg-gray-100">--</p>
+            <select id="toUnit" class="mt-1 p-3 border-t border-b border-r border-gray-300 rounded-r-lg bg-gray-50"></select>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Data Store ---
+    const units = {
+      length: {
+        meters: 1,
+        kilometers: 1000,
+        centimeters: 0.01,
+        miles: 1609.34,
+        feet: 0.3048,
+        inches: 0.0254,
+      },
+      weight: {
+        grams: 1,
+        kilograms: 1000,
+        milligrams: 0.001,
+        pounds: 453.592,
+        ounces: 28.3495,
+      },
+      temperature: { // Special handling needed
+        celsius: 'celsius',
+        fahrenheit: 'fahrenheit',
+        kelvin: 'kelvin',
+      }
+    };
+
+    // --- DOM Elements ---
+    const categorySelect = document.getElementById('category');
+    const fromUnitSelect = document.getElementById('fromUnit');
+    const toUnitSelect = document.getElementById('toUnit');
+    const fromValueInput = document.getElementById('fromValue');
+    const toValueDisplay = document.getElementById('toValue');
+
+    // --- Core Functions ---
+    function populateUnits() {
+      const category = categorySelect.value;
+      const unitOptions = Object.keys(units[category]);
+
+      fromUnitSelect.innerHTML = '';
+      toUnitSelect.innerHTML = '';
+
+      unitOptions.forEach(unit => {
+        fromUnitSelect.innerHTML += `<option value="${unit}">${unit}</option>`;
+        toUnitSelect.innerHTML += `<option value="${unit}">${unit}</option>`;
+      });
+
+      // Set default different units
+      if(unitOptions.length > 1) {
+        toUnitSelect.value = unitOptions[1];
+      }
+      convert();
+    }
+
+    function convert() {
+      const category = categorySelect.value;
+      const fromValue = parseFloat(fromValueInput.value);
+      const fromUnit = fromUnitSelect.value;
+      const toUnit = toUnitSelect.value;
+
+      if (isNaN(fromValue)) {
+        toValueDisplay.textContent = '--';
+        return;
+      }
+      
+      let result;
+
+      if (category === 'temperature') {
+        // Temperature conversion has unique formulas
+        let tempInC;
+        if (fromUnit === 'celsius') tempInC = fromValue;
+        if (fromUnit === 'fahrenheit') tempInC = (fromValue - 32) * 5/9;
+        if (fromUnit === 'kelvin') tempInC = fromValue - 273.15;
+
+        if (toUnit === 'celsius') result = tempInC;
+        if (toUnit === 'fahrenheit') result = (tempInC * 9/5) + 32;
+        if (toUnit === 'kelvin') result = tempInC + 273.15;
+      } else {
+        // Standard unit conversion
+        const fromFactor = units[category][fromUnit];
+        const toFactor = units[category][toUnit];
+        const valueInBaseUnit = fromValue * fromFactor;
+        result = valueInBaseUnit / toFactor;
+      }
+      
+      toValueDisplay.textContent = parseFloat(result.toFixed(6));
+    }
+
+    // --- Event Listeners ---
+    categorySelect.addEventListener('change', populateUnits);
+    fromValueInput.addEventListener('input', convert);
+    fromUnitSelect.addEventListener('change', convert);
+    toUnitSelect.addEventListener('change', convert);
+
+    // --- Initial Setup ---
+    populateUnits();
+
+  </script>
+</Layout>

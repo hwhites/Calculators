@@ -1,0 +1,148 @@
+---
+// src/pages/bmi-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="BMI Calculator | CourseAssist">
+  <div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">BMI Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Calculate your Body Mass Index.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <!-- Unit Selection Tabs -->
+      <div class="flex justify-center border-b border-gray-200 mb-6">
+        <button id="imperial-btn" class="unit-btn active" data-unit="imperial">Imperial (lbs, in)</button>
+        <button id="metric-btn" class="unit-btn" data-unit="metric">Metric (kg, cm)</button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Left Side: Inputs -->
+        <div class="space-y-4">
+          <div id="imperial-inputs">
+            <label for="height-ft" class="block text-sm font-medium text-gray-700">Height</label>
+            <div class="flex items-center space-x-2 mt-1">
+              <input type="number" id="height-ft" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="ft">
+              <input type="number" id="height-in" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="in">
+            </div>
+            <label for="weight-lbs" class="block text-sm font-medium text-gray-700 mt-4">Weight (lbs)</label>
+            <input type="number" id="weight-lbs" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 150">
+          </div>
+          <div id="metric-inputs" class="hidden">
+            <label for="height-cm" class="block text-sm font-medium text-gray-700">Height (cm)</label>
+            <input type="number" id="height-cm" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 175">
+            <label for="weight-kg" class="block text-sm font-medium text-gray-700 mt-4">Weight (kg)</label>
+            <input type="number" id="weight-kg" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 68">
+          </div>
+        </div>
+
+        <!-- Right Side: Results -->
+        <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center">
+          <h2 class="text-lg font-bold text-gray-800">Your BMI:</h2>
+          <p id="bmi-score" class="text-5xl font-extrabold text-blue-600 my-2">--</p>
+          <p id="bmi-category" class="text-lg font-semibold text-gray-700">Enter your details</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const imperialBtn = document.getElementById('imperial-btn');
+    const metricBtn = document.getElementById('metric-btn');
+    const imperialInputs = document.getElementById('imperial-inputs');
+    const metricInputs = document.getElementById('metric-inputs');
+    const allInputs = document.querySelectorAll('.calc-input');
+    const bmiScoreDisplay = document.getElementById('bmi-score');
+    const bmiCategoryDisplay = document.getElementById('bmi-category');
+    let currentUnit = 'imperial';
+
+    // --- Calculation & Logic ---
+    function getBMICategory(bmi) {
+      if (bmi < 18.5) return 'Underweight';
+      if (bmi >= 18.5 && bmi < 25) return 'Normal weight';
+      if (bmi >= 25 && bmi < 30) return 'Overweight';
+      if (bmi >= 30) return 'Obesity';
+      return 'Enter your details';
+    }
+
+    function calculateBMI() {
+      let height = 0;
+      let weight = 0;
+
+      if (currentUnit === 'imperial') {
+        const feet = parseFloat(document.getElementById('height-ft').value) || 0;
+        const inches = parseFloat(document.getElementById('height-in').value) || 0;
+        weight = parseFloat(document.getElementById('weight-lbs').value);
+        height = (feet * 12) + inches; // Total height in inches
+        if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+           updateDisplay(); return;
+        }
+        const bmi = (weight / (height * height)) * 703;
+        updateDisplay(bmi);
+      } else {
+        height = parseFloat(document.getElementById('height-cm').value);
+        weight = parseFloat(document.getElementById('weight-kg').value);
+        if (isNaN(height) || isNaN(weight) || height <= 0 || weight <= 0) {
+          updateDisplay(); return;
+        }
+        const heightInMeters = height / 100;
+        const bmi = weight / (heightInMeters * heightInMeters);
+        updateDisplay(bmi);
+      }
+    }
+    
+    function updateDisplay(bmi = null) {
+      if (bmi === null || isNaN(bmi)) {
+        bmiScoreDisplay.textContent = '--';
+        bmiCategoryDisplay.textContent = 'Enter your details';
+      } else {
+        bmiScoreDisplay.textContent = bmi.toFixed(1);
+        bmiCategoryDisplay.textContent = getBMICategory(bmi);
+      }
+    }
+
+    // --- Event Listeners ---
+    function switchUnits(unit) {
+      currentUnit = unit;
+      if (unit === 'imperial') {
+        imperialBtn.classList.add('active');
+        metricBtn.classList.remove('active');
+        imperialInputs.classList.remove('hidden');
+        metricInputs.classList.add('hidden');
+      } else {
+        metricBtn.classList.add('active');
+        imperialBtn.classList.remove('active');
+        metricInputs.classList.remove('hidden');
+        imperialInputs.classList.add('hidden');
+      }
+      calculateBMI();
+    }
+
+    imperialBtn.addEventListener('click', () => switchUnits('imperial'));
+    metricBtn.addEventListener('click', () => switchUnits('metric'));
+    allInputs.forEach(input => input.addEventListener('input', calculateBMI));
+  </script>
+  
+  <style>
+    .unit-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: none;
+      cursor: pointer;
+      font-weight: 500;
+      color: #4B5563; /* text-gray-600 */
+      border-bottom: 2px solid transparent;
+      margin-bottom: -1px;
+    }
+    .unit-btn.active {
+      color: #2563EB; /* text-blue-600 */
+      border-bottom-color: #2563EB;
+      font-weight: 600;
+    }
+  </style>
+</Layout>

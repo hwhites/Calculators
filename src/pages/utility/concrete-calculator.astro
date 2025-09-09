@@ -1,0 +1,127 @@
+---
+// src/pages/concrete-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Concrete Calculator | CourseAssist">
+  <div class="max-w-3xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Concrete Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Estimate the volume of concrete you need for your project.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        
+        <!-- Left Side: Inputs -->
+        <div class="space-y-4">
+          <!-- Shape Selection -->
+          <div>
+            <label for="shape" class="block text-sm font-medium text-gray-700">Shape of Pour</label>
+            <select id="shape" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg bg-gray-50">
+              <option value="slab">Slab / Wall / Footing</option>
+              <option value="column">Round Column / Cylinder</option>
+            </select>
+          </div>
+          
+          <!-- Dynamic Input Area -->
+          <div id="input-area" class="space-y-4">
+            <!-- Inputs for Slab -->
+            <div id="slab-inputs">
+              <div>
+                <label for="slabLength" class="block text-sm font-medium text-gray-700">Length (ft)</label>
+                <input type="number" id="slabLength" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg">
+              </div>
+              <div>
+                <label for="slabWidth" class="block text-sm font-medium text-gray-700">Width (ft)</label>
+                <input type="number" id="slabWidth" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg">
+              </div>
+              <div>
+                <label for="slabThickness" class="block text-sm font-medium text-gray-700">Thickness (in)</label>
+                <input type="number" id="slabThickness" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg">
+              </div>
+            </div>
+            <!-- Inputs for Column (initially hidden) -->
+            <div id="column-inputs" class="hidden">
+               <div>
+                <label for="colDiameter" class="block text-sm font-medium text-gray-700">Diameter (in)</label>
+                <input type="number" id="colDiameter" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg">
+              </div>
+              <div>
+                <label for="colHeight" class="block text-sm font-medium text-gray-700">Height (ft)</label>
+                <input type="number" id="colHeight" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Side: Results -->
+        <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center">
+          <h2 class="text-lg font-bold text-gray-800">Estimated Concrete Needed</h2>
+          <p id="result-volume" class="text-5xl font-extrabold text-blue-600 my-2 leading-tight">--</p>
+          <p class="text-sm text-gray-600">cubic yards</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const shapeSelector = document.getElementById('shape');
+    const allInputs = document.querySelectorAll('.calc-input');
+    const slabInputs = document.getElementById('slab-inputs');
+    const columnInputs = document.getElementById('column-inputs');
+    const resultDisplay = document.getElementById('result-volume');
+    
+    // --- Calculation Logic ---
+    function calculateConcrete() {
+      const shape = shapeSelector.value;
+      let volumeCubicFeet = 0;
+
+      if (shape === 'slab') {
+        const length = parseFloat(document.getElementById('slabLength').value) || 0;
+        const width = parseFloat(document.getElementById('slabWidth').value) || 0;
+        const thicknessInches = parseFloat(document.getElementById('slabThickness').value) || 0;
+        const thicknessFeet = thicknessInches / 12;
+        if (length > 0 && width > 0 && thicknessFeet > 0) {
+          volumeCubicFeet = length * width * thicknessFeet;
+        }
+      } else if (shape === 'column') {
+        const diameterInches = parseFloat(document.getElementById('colDiameter').value) || 0;
+        const height = parseFloat(document.getElementById('colHeight').value) || 0;
+        const radiusFeet = (diameterInches / 2) / 12;
+        if (radiusFeet > 0 && height > 0) {
+          volumeCubicFeet = Math.PI * Math.pow(radiusFeet, 2) * height;
+        }
+      }
+      
+      if (volumeCubicFeet > 0) {
+        // Convert cubic feet to cubic yards (1 cubic yard = 27 cubic feet)
+        const volumeCubicYards = volumeCubicFeet / 27;
+        resultDisplay.textContent = volumeCubicYards.toFixed(2);
+      } else {
+        resultDisplay.textContent = '--';
+      }
+    }
+
+    // --- UI Logic ---
+    function handleShapeChange() {
+      const shape = shapeSelector.value;
+      if (shape === 'slab') {
+        slabInputs.classList.remove('hidden');
+        columnInputs.classList.add('hidden');
+      } else {
+        slabInputs.classList.add('hidden');
+        columnInputs.classList.remove('hidden');
+      }
+      calculateConcrete(); // Recalculate when shape changes
+    }
+
+    // --- Event Listeners ---
+    shapeSelector.addEventListener('change', handleShapeChange);
+    allInputs.forEach(input => input.addEventListener('input', calculateConcrete));
+
+  </script>
+</Layout>

@@ -1,0 +1,133 @@
+---
+// src/pages/savings-goal-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Savings Goal Calculator | CourseAssist">
+  <div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Savings Goal Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Find out how long it will take to reach your savings goal.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- Left Side: Inputs -->
+        <div class="space-y-4">
+          <div>
+            <label for="savingsGoal" class="block text-sm font-medium text-gray-700">Savings Goal ($)</label>
+            <input type="number" id="savingsGoal" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 25000">
+          </div>
+          <div>
+            <label for="initialDeposit" class="block text-sm font-medium text-gray-700">Initial Deposit ($)</label>
+            <input type="number" id="initialDeposit" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 1000">
+          </div>
+          <div>
+            <label for="monthlyContribution" class="block text-sm font-medium text-gray-700">Monthly Contribution ($)</label>
+            <input type="number" id="monthlyContribution" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 500">
+          </div>
+          <div>
+            <label for="interestRate" class="block text-sm font-medium text-gray-700">Estimated Annual Interest Rate (%)</label>
+            <input type="number" id="interestRate" class="calc-input mt-1 w-full p-3 border border-gray-300 rounded-lg" placeholder="e.g., 4.5">
+          </div>
+        </div>
+
+        <!-- Right Side: Results -->
+        <div class="bg-gray-50 rounded-lg p-6 flex flex-col justify-center items-center text-center">
+          <h2 class="text-lg font-bold text-gray-800">You will reach your goal in:</h2>
+          <p id="result-time" class="text-4xl font-extrabold text-blue-600 my-2 leading-tight">--</p>
+          <div class="mt-4 border-t border-gray-200 pt-4 w-full">
+            <h3 class="text-sm font-medium text-gray-600">Total Contributions:</h3>
+            <p id="totalContributions" class="text-lg font-bold text-gray-800">--</p>
+            <h3 class="text-sm font-medium text-gray-600 mt-2">Total Interest Earned:</h3>
+            <p id="totalInterest" class="text-lg font-bold text-gray-800">--</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const savingsGoalInput = document.getElementById('savingsGoal');
+    const initialDepositInput = document.getElementById('initialDeposit');
+    const monthlyContributionInput = document.getElementById('monthlyContribution');
+    const interestRateInput = document.getElementById('interestRate');
+    const resultTimeDisplay = document.getElementById('result-time');
+    const totalContributionsDisplay = document.getElementById('totalContributions');
+    const totalInterestDisplay = document.getElementById('totalInterest');
+    const allInputs = [savingsGoalInput, initialDepositInput, monthlyContributionInput, interestRateInput];
+
+    // --- Calculation Logic ---
+    function calculateSavings() {
+      const goal = parseFloat(savingsGoalInput.value);
+      const initial = parseFloat(initialDepositInput.value) || 0;
+      const monthly = parseFloat(monthlyContributionInput.value) || 0;
+      const annualRate = parseFloat(interestRateInput.value) || 0;
+
+      if (isNaN(goal) || goal <= initial) {
+        resetDisplay();
+        return;
+      }
+      
+      if (monthly <= 0 && annualRate <= 0) {
+        resultTimeDisplay.textContent = "Never";
+        totalContributionsDisplay.textContent = `$${initial.toFixed(2)}`;
+        totalInterestDisplay.textContent = "$0.00";
+        return;
+      }
+
+      let currentBalance = initial;
+      let totalContributions = initial;
+      let months = 0;
+      const monthlyRate = annualRate / 100 / 12;
+
+      while (currentBalance < goal) {
+        // Add interest for the month
+        currentBalance += currentBalance * monthlyRate;
+        // Add monthly contribution
+        currentBalance += monthly;
+        totalContributions += monthly;
+        months++;
+        
+        // Safety break to prevent infinite loops if goal is unreachable
+        if (months > 1200) { 
+           resultTimeDisplay.textContent = "Over 100 years";
+           resetDisplay(true);
+           return;
+        }
+      }
+      
+      const years = Math.floor(months / 12);
+      const remainingMonths = months % 12;
+      const totalInterest = currentBalance - totalContributions;
+
+      let timeString = '';
+      if (years > 0) timeString += `${years} year${years > 1 ? 's' : ''}`;
+      if (years > 0 && remainingMonths > 0) timeString += ' and ';
+      if (remainingMonths > 0) timeString += `${remainingMonths} month${remainingMonths > 1 ? 's' : ''}`;
+      if (years === 0 && remainingMonths === 0 && months > 0) timeString = 'Less than a month';
+
+
+      // Display Results
+      resultTimeDisplay.textContent = timeString;
+      totalContributionsDisplay.textContent = `$${totalContributions.toFixed(2)}`;
+      totalInterestDisplay.textContent = `$${totalInterest.toFixed(2)}`;
+    }
+
+    function resetDisplay(isUnreachable = false) {
+      if (!isUnreachable) resultTimeDisplay.textContent = '--';
+      totalContributionsDisplay.textContent = '--';
+      totalInterestDisplay.textContent = '--';
+    }
+
+    // --- Event Listeners ---
+    allInputs.forEach(input => {
+      input.addEventListener('input', calculateSavings);
+    });
+
+  </script>
+</Layout>

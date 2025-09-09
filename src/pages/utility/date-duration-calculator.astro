@@ -1,0 +1,160 @@
+---
+// src/pages/utility/date-duration-calculator.astro
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout title="Date Duration Calculator | CourseAssist">
+  <div class="max-w-2xl mx-auto">
+    <!-- Page Header -->
+    <div class="text-center mb-12">
+      <h1 class="text-4xl font-bold text-gray-800">Date Duration Calculator</h1>
+      <p class="mt-2 text-lg text-gray-600">Calculate the time between two dates.</p>
+    </div>
+
+    <!-- Calculator Card -->
+    <div class="bg-white p-8 rounded-xl border border-gray-200 shadow-md">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-start">
+        <!-- Start Date -->
+        <div>
+          <label for="startMonth" class="block text-sm font-medium text-gray-700">Start Date</label>
+          <div class="mt-1 grid grid-cols-3 gap-2">
+            <input type="number" id="startMonth" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="MM">
+            <input type="number" id="startDay" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="DD">
+            <input type="number" id="startYear" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="YYYY">
+          </div>
+        </div>
+        <!-- End Date -->
+        <div>
+          <div class="flex justify-between items-center">
+            <label for="endMonth" class="block text-sm font-medium text-gray-700">End Date</label>
+            <button id="todayBtn" class="text-sm text-blue-600 hover:underline font-semibold">Today</button>
+          </div>
+          <div class="mt-1 grid grid-cols-3 gap-2">
+            <input type="number" id="endMonth" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="MM">
+            <input type="number" id="endDay" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="DD">
+            <input type="number" id="endYear" class="calc-input w-full p-3 border border-gray-300 rounded-lg" placeholder="YYYY">
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Display -->
+      <div class="mt-8 border-t border-gray-200 pt-6">
+        <h2 class="text-lg font-bold text-gray-800 mb-4 text-center">Duration:</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="years" class="text-3xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Years</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="months" class="text-3xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Months</p>
+          </div>
+          <div class="bg-gray-50 p-4 rounded-lg">
+            <p id="days" class="text-3xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Days</p>
+          </div>
+        </div>
+        <div class="mt-4 text-center bg-gray-50 p-4 rounded-lg">
+            <p id="totalDays" class="text-3xl font-extrabold text-blue-600">--</p>
+            <p class="text-sm text-gray-600">Total Days</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- DOM Elements ---
+    const startMonthInput = document.getElementById('startMonth');
+    const startDayInput = document.getElementById('startDay');
+    const startYearInput = document.getElementById('startYear');
+    const endMonthInput = document.getElementById('endMonth');
+    const endDayInput = document.getElementById('endDay');
+    const endYearInput = document.getElementById('endYear');
+    const todayBtn = document.getElementById('todayBtn');
+    const allInputs = [startMonthInput, startDayInput, startYearInput, endMonthInput, endDayInput, endYearInput];
+    
+    const yearsDisplay = document.getElementById('years');
+    const monthsDisplay = document.getElementById('months');
+    const daysDisplay = document.getElementById('days');
+    const totalDaysDisplay = document.getElementById('totalDays');
+
+    // --- Utility to validate and create a Date object ---
+    function createValidDate(year, month, day) {
+        if (isNaN(year) || isNaN(month) || isNaN(day) || year < 1000 || month < 1 || month > 12 || day < 1 || day > 31) {
+            return null;
+        }
+        const date = new Date(year, month - 1, day);
+        if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) {
+            return null; // Invalid date like Feb 30
+        }
+        return date;
+    }
+
+    // --- Calculation Logic ---
+    function calculateDuration() {
+        const startYear = parseInt(startYearInput.value);
+        const startMonth = parseInt(startMonthInput.value);
+        const startDay = parseInt(startDayInput.value);
+        
+        const endYear = parseInt(endYearInput.value);
+        const endMonth = parseInt(endMonthInput.value);
+        const endDay = parseInt(endDayInput.value);
+
+        const startDate = createValidDate(startYear, startMonth, startDay);
+        const endDate = createValidDate(endYear, endMonth, endDay);
+        
+        if (!startDate || !endDate || endDate < startDate) {
+            resetDisplay();
+            return;
+        }
+
+        // --- Total Days Calculation ---
+        const diffTime = Math.abs(endDate - startDate);
+        const totalDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        totalDaysDisplay.textContent = totalDays.toLocaleString();
+
+        // --- Years, Months, Days Breakdown ---
+        let years = endDate.getFullYear() - startDate.getFullYear();
+        let months = endDate.getMonth() - startDate.getMonth();
+        let days = endDate.getDate() - startDate.getDate();
+
+        if (days < 0) {
+            months--;
+            const lastDayOfPrevMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 0).getDate();
+            days += lastDayOfPrevMonth;
+        }
+
+        if (months < 0) {
+            years--;
+            months += 12;
+        }
+        
+        yearsDisplay.textContent = years;
+        monthsDisplay.textContent = months;
+        daysDisplay.textContent = days;
+    }
+
+    function resetDisplay() {
+        yearsDisplay.textContent = '--';
+// ... existing code ... -->
+        daysDisplay.textContent = '--';
+        totalDaysDisplay.textContent = '--';
+    }
+
+    function setEndDateToToday() {
+        const today = new Date();
+        endMonthInput.value = today.getMonth() + 1; // getMonth() is 0-indexed
+        endDayInput.value = today.getDate();
+        endYearInput.value = today.getFullYear();
+        calculateDuration();
+    }
+
+    // --- Event Listeners ---
+    allInputs.forEach(input => {
+        input.addEventListener('input', calculateDuration);
+    });
+    todayBtn.addEventListener('click', setEndDateToToday);
+  </script>
+</Layout>
+
